@@ -1,0 +1,5 @@
+numpy>=1.26,<3
+opencv-python>=4.9,<5
+ultralytics>=8.2,<9
+insightface>=2.0,<3
+onnxruntime>=1.17,<2

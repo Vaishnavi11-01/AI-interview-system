@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+models/*.pt
+models/*.onnx
+sample_video.mp4
+output/
+visitor_report.html
+data/*.sqlite3*
+logs/**
+!logs/.gitkeep
