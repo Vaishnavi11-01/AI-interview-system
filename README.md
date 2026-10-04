@@ -23,7 +23,7 @@ A Python application for detecting faces in a video file, webcam, or RTSP stream
 - Webcam index, local video file, and RTSP input; optional annotated OpenCV preview.
 - CLI count retrieval: `python main.py --count`.
 - Visual event gallery: `python main.py --report` creates `visitor_report.html`, which can be opened in a web browser and regenerated after each run.
-- Processed visitor event gallery: [Open the Drive video run report](output/drive_run_report.html) for the generated visitor entry/exit gallery. To view it through the local upload app, open `http://127.0.0.1:5055/outputs/drive_run_report.html` while the app is running; this localhost URL is not publicly accessible.
+- Public sample gallery: [Open the privacy-safe visitor event gallery](https://vaishnavi11-01.github.io/AI-interview-system/gallery/) (sample counts; example faces are heavily pixelated). The private, full-resolution report is generated locally and is not included in the public repository.
 - Optional annotated MP4 output: pass `--output-video output/annotated.mp4` to save the processed stream with visitor boxes and IDs. Entry/exit snapshots remain separate images for the audit log.
 - Browser video upload: run `python web_app.py`, open `http://127.0.0.1:5000`, choose/drop a supported video, and select **Upload and process video**. The local page reports completion and plays the annotated output. Add `--gpu` to the command to request CUDA inference.
 
