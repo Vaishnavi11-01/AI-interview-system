@@ -1,3 +1,9 @@
+---
+title: Intelligent Face Tracker
+sdk: docker
+app_port: 7860
+---
+
 # Intelligent Face Tracker with Auto-Registration
 
 A Python application for detecting faces in a video file, webcam, or RTSP stream; assigning persistent visitor IDs using InsightFace embeddings; tracking appearances; and recording timestamped entry/exit snapshots in SQLite and a rotating log file.
@@ -101,6 +107,17 @@ The repository includes a Docker deployment (`Dockerfile`, `render.yaml`, and `r
 5. Test with a short, non-sensitive video first. Confirm the upload finishes, then verify the annotated video, report, snapshots, and database survive a service restart using the persistent disk.
 
 **Hosting caveats:** This workload downloads large machine-learning dependencies and runs face inference on CPU; select a plan with enough memory, CPU, disk space, and upload-size allowance for your videos. The blueprint uses one Gunicorn worker because current job status is held in memory and SQLite is local to one service. The job status is lost on restart, and multiple simultaneous workers/services are not supported. Check the host's request-size and request-time limits for uploads. This demonstration app does not include an account system, CSRF protection, rate limiting, or production job queue; Basic Auth is only a minimal access barrier, not a complete production security design. Face images and embeddings are sensitive biometric data: only host footage you have authorization to process, limit access and retention, and do not use this demo for consequential decisions.
+
+### Free demo hosting on Hugging Face Spaces
+
+The repository is also configured as a Docker Space on port `7860`, which can run on Hugging Face's free CPU hardware. To deploy without a paid Render service:
+
+1. Sign in to Hugging Face and choose **New Space**. Select Docker as the SDK and CPU Basic as the hardware; create the Space under your own account.
+2. In the Space's **Settings → Variables and secrets**, add `WEB_USERNAME` and `WEB_PASSWORD` secrets with strong unique values. The application will not start without them.
+3. Push/mirror this repository's `main` branch to the new Space repository. Keep the Space private if possible; if it must be public, Basic Auth protects the app page and uploaded-video endpoints.
+4. Wait for the Docker build and model download, then open the Space's `hf.space` URL and test a short video.
+
+Free Spaces use ephemeral local storage: the SQLite database, visitor snapshots, uploaded video and generated outputs can disappear when the Space restarts or sleeps. CPU inference can also be slow, and host upload/request limits apply. This option is for a short demo, not persistent or sensitive production use. Do not upload real people's face videos unless you have permission and have reviewed the host's data handling terms.
 
 ### Configuration
 

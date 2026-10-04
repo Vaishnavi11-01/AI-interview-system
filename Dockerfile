@@ -24,5 +24,5 @@ RUN mkdir -p /var/data/logs /var/data/output /var/data/uploads \
       https://github.com/akanametov/yolo-face/releases/download/1.0.0/yolov8n-face.pt \
       --output models/yolov8n-face.pt
 
-EXPOSE 10000
-CMD ["sh", "-c", "gunicorn wsgi:app --bind 0.0.0.0:${PORT:-10000} --workers 1 --threads 4 --timeout 0"]
+EXPOSE 7860
+CMD ["sh", "-c", "gunicorn wsgi:app --bind 0.0.0.0:${PORT:-7860} --workers 1 --threads 4 --timeout 0"]
