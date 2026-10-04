@@ -190,6 +190,7 @@ These are rough capacity estimates, not benchmark claims. Measure the actual cam
 - A `visitor_id` is created for each new unmatched embedding, and the unique visitor count is the number of rows in `visitors` across the configured database.
 
 ## Demonstration video
+https://executives-read-container-examine.trycloudflare.com/outputs/visitor_report.html
 
 **Loom/YouTube URL:** TODO — replace with the submitted public/unlisted demonstration link.
 See [DEMO_SCRIPT.md](DEMO_SCRIPT.md) for a short recording walkthrough. The recording and upload require your own Loom/YouTube account.
