@@ -20,14 +20,20 @@ class FaceDetection:
 class YoloFaceDetector:
     """YOLO detector wrapper; configure a face-trained YOLO weights file."""
 
-    def __init__(self, model_path: str, confidence: float, image_size: int) -> None:
+    def __init__(self, model_path: str, confidence: float, image_size: int, use_gpu: bool = False) -> None:
         if not Path(model_path).is_file():
             raise FileNotFoundError(
                 f"YOLO face weights not found: {model_path}. Set detector_model in config.json."
             )
+        if use_gpu:
+            import torch
+
+            if not torch.cuda.is_available():
+                raise RuntimeError("GPU mode requested, but CUDA is not available to PyTorch")
         self.model = YOLO(model_path)
         self.confidence = confidence
         self.image_size = image_size
+        self.use_gpu = use_gpu
 
     def detect(self, frame: np.ndarray) -> list[FaceDetection]:
         height, width = frame.shape[:2]
@@ -35,6 +41,9 @@ class YoloFaceDetector:
             source=frame,
             conf=self.confidence,
             imgsz=self.image_size,
+            device=0 if self.use_gpu else "cpu",
+            half=self.use_gpu,
+            max_det=50,
             verbose=False,
         )[0]
         detections: list[FaceDetection] = []

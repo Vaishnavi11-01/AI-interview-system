@@ -7,7 +7,7 @@ import sqlite3
 from urllib.parse import quote
 
 
-def generate_report(database_path: Path, output_path: Path) -> Path:
+def generate_report(database_path: Path, output_path: Path, video_path: Path | None = None) -> Path:
     database_path = database_path.resolve()
     output_path = output_path.resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -24,7 +24,10 @@ def generate_report(database_path: Path, output_path: Path) -> Path:
 
     entry_count = sum(event[0] == "entry" for event in events)
     exit_count = sum(event[0] == "exit" for event in events)
-    video_path = output_path.parent / "output" / "annotated_sample.mp4"
+    if video_path is None:
+      video_path = output_path.parent / "output" / "annotated_sample.mp4"
+    else:
+      video_path = video_path.expanduser().resolve()
     video_html = ""
     if video_path.is_file():
         video_href = quote(Path(os.path.relpath(video_path, output_path.parent)).as_posix(), safe="/:")

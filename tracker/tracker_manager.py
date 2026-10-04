@@ -10,7 +10,7 @@ from detector.yolo_detector import FaceDetection
 class Track:
     track_id: str
     bbox: tuple[int, int, int, int]
-    embedding: np.ndarray
+    embedding: np.ndarray | None
     confidence: float
     crop: np.ndarray
     visitor_id: str | None = None
@@ -25,7 +25,7 @@ class TrackUpdate:
 
 
 class IoUAppearanceTracker:
-    """Greedy IoU/embedding tracker; age advances only on detector cycles."""
+    """Greedy IoU association without per-frame face embeddings."""
 
     def __init__(self, max_missed_cycles: int, iou_threshold: float, similarity_threshold: float) -> None:
         self.max_missed_cycles = max_missed_cycles
@@ -43,10 +43,8 @@ class IoUAppearanceTracker:
         union = area_a + area_b - intersection
         return intersection / union if union else 0.0
 
-    @staticmethod
-    def _similarity(a: np.ndarray, b: np.ndarray) -> float:
-        denom = max(float(np.linalg.norm(a)), 1e-12) * max(float(np.linalg.norm(b)), 1e-12)
-        return float(np.dot(a, b) / denom)
+    def _score(self, track: Track, detection: FaceDetection) -> float:
+        return self._iou(track.bbox, detection.bbox)
 
     def update(self, detections: list[FaceDetection]) -> tuple[list[TrackUpdate], list[Track]]:
         for track in self.active.values():
@@ -55,11 +53,12 @@ class IoUAppearanceTracker:
         candidates: list[tuple[float, str, int]] = []
         for track_id, track in self.active.items():
             for index, detection in enumerate(detections):
-                similarity = self._similarity(track.embedding, detection.embedding)
                 iou = self._iou(track.bbox, detection.bbox)
-                if iou >= self.iou_threshold or similarity >= self.similarity_threshold:
-                    candidates.append((0.55 * iou + 0.45 * max(0.0, similarity), track_id, index))
-        candidates.sort(reverse=True)
+                if iou >= self.iou_threshold:
+                    score = self._score(track, detection)
+                    candidates.append((score, track_id, index))
+
+        candidates.sort(key=lambda item: item[0], reverse=True)
         assigned_tracks: set[str] = set()
         assigned_detections: set[int] = set()
         updates: list[TrackUpdate] = []
@@ -70,7 +69,7 @@ class IoUAppearanceTracker:
             track = self.active[track_id]
             detection = detections[index]
             track.bbox = detection.bbox
-            track.embedding = detection.embedding
+            # Keep the first embedding; subsequent frames are tracked by box overlap.
             track.confidence = detection.confidence
             track.crop = detection.crop
             track.missed_cycles = 0

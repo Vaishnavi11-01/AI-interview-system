@@ -1,9 +1,9 @@
 {
-  "source": 0,
+  "source": "",
   "camera_id": "camera-1",
   "detector_model": "models/yolov8n-face.pt",
   "detection_confidence": 0.45,
-  "detection_image_size": 640,
+  "detection_image_size": 416,
   "detection_skip_frames": 2,
   "max_missed_cycles": 4,
   "track_iou_threshold": 0.15,
@@ -11,5 +11,5 @@
   "recognition_similarity_threshold": 0.45,
   "database_path": "data/visitors.sqlite3",
   "logs_dir": "logs",
-  "show_preview": true
+  "show_preview": false
 }

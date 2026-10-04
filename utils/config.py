@@ -4,6 +4,20 @@ from pathlib import Path
 from typing import Any
 
 
+def _coerce_bool(value: Any, default: bool = False) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        lowered = value.strip().lower()
+        if lowered in {"true", "1", "yes", "on"}:
+            return True
+        if lowered in {"false", "0", "no", "off", ""}:
+            return False
+    if value is None:
+        return default
+    return bool(value)
+
+
 @dataclass(frozen=True)
 class Settings:
     source: Any
@@ -40,7 +54,7 @@ def load_settings(path: str | Path) -> Settings:
         camera_id=str(raw.get("camera_id", "camera-1")),
         detector_model=str(local_path("detector_model")),
         detection_confidence=float(raw.get("detection_confidence", 0.45)),
-        detection_image_size=int(raw.get("detection_image_size", 640)),
+        detection_image_size=int(raw.get("detection_image_size", 416)),
         detection_skip_frames=int(raw.get("detection_skip_frames", 2)),
         max_missed_cycles=int(raw.get("max_missed_cycles", 4)),
         track_iou_threshold=float(raw.get("track_iou_threshold", 0.15)),
@@ -48,7 +62,7 @@ def load_settings(path: str | Path) -> Settings:
         recognition_similarity_threshold=float(raw.get("recognition_similarity_threshold", 0.45)),
         database_path=local_path("database_path"),
         logs_dir=local_path("logs_dir"),
-        show_preview=bool(raw.get("show_preview", True)),
+        show_preview=_coerce_bool(raw.get("show_preview", True), default=True),
     )
     if settings.detection_skip_frames < 0:
         raise ValueError("detection_skip_frames must be zero or greater")

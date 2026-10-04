@@ -34,12 +34,16 @@ def main() -> int:
             database.close()
         return 0
 
+    selected_source = args.source if args.source is not None else settings.source
+    if selected_source in (None, "", 0):
+        raise SystemExit("No source configured. Pass --source 0 for webcam or --source 'video.mp4' for a file.")
+
     # Import model-dependent packages only when starting the pipeline.
     from pipeline import FaceTrackingPipeline
 
     pipeline = FaceTrackingPipeline(settings, use_gpu=args.gpu)
     count = pipeline.run(
-        source=parse_source(args.source) if args.source is not None else None,
+        source=parse_source(args.source) if args.source is not None else selected_source,
         output_video=args.output_video,
     )
     print(f"Unique registered visitors: {count}")

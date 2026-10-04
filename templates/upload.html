@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Visitor Vision · Video upload</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, "Segoe UI", sans-serif; background: #080d19; color: #f3f6ff; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; background: radial-gradient(ellipse at 50% -15%, #20345e 0, #0d1527 42%, #080d19 75%); }
+    main { width: min(860px, 92vw); margin: 0 auto; padding: 58px 0 70px; }
+    .brand { display: flex; align-items: center; gap: 11px; color: #a9b9df; font-size: .83rem; letter-spacing: .13em; text-transform: uppercase; font-weight: 700; }
+    .brand-mark { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid #627fc4; border-radius: 11px; color: #a9c3ff; background: #182748; }
+    h1 { margin: 35px 0 10px; font-size: clamp(2.2rem, 6vw, 4rem); letter-spacing: -.055em; line-height: 1.02; }
+    .intro { max-width: 610px; color: #a7b4ce; line-height: 1.7; }
+    .card { margin-top: 34px; padding: 26px; background: linear-gradient(145deg, #141f35, #10192b); border: 1px solid #293956; border-radius: 24px; box-shadow: 0 24px 90px #0005; }
+    .drop-zone { min-height: 230px; display: grid; place-items: center; padding: 28px; border: 1.5px dashed #53688f; border-radius: 18px; background: #0c1526; text-align: center; transition: .2s ease; }
+    .drop-zone.dragover { border-color: #91afff; background: #142440; }
+    .upload-icon { width: 54px; height: 54px; display: grid; place-items: center; margin: 0 auto 14px; border-radius: 17px; background: #1a2c4d; color: #a9c3ff; font-size: 1.6rem; }
+    .drop-zone strong { display: block; font-size: 1.06rem; }
+    .drop-zone p { margin: 7px 0 17px; color: #94a3bf; font-size: .91rem; }
+    .browse, .submit { border: 0; border-radius: 11px; padding: 12px 18px; color: #0b1426; background: #a9c3ff; font-weight: 750; cursor: pointer; }
+    .browse:hover, .submit:hover { background: #c2d3ff; }
+    input[type=file] { display: none; }
+    .file-name { display: block; min-height: 21px; margin-top: 12px; color: #c6d4f1; font-size: .88rem; }
+    .submit { width: 100%; margin-top: 20px; padding: 15px; font-size: .98rem; }
+    .submit:disabled { cursor: wait; opacity: .6; }
+    .fine-print { margin: 13px 0 0; color: #7686a4; text-align: center; font-size: .79rem; }
+    .status { display: none; margin-top: 20px; padding: 18px; border: 1px solid #344769; border-radius: 15px; background: #0b1424; }
+    .status.visible { display: block; }
+    .status-line { display: flex; align-items: center; gap: 11px; }
+    .spinner { width: 18px; height: 18px; border: 2px solid #50648b; border-top-color: #aac4ff; border-radius: 50%; animation: spin .8s linear infinite; }
+    .spinner.hidden { display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .status p { margin: 8px 0 0 29px; color: #aab8d2; font-size: .9rem; line-height: 1.5; }
+    .error { color: #ffaaa9 !important; }
+    .result { margin-top: 18px; }
+    .result video { display: block; width: 100%; max-height: 65vh; background: #02050a; border-radius: 13px; }
+    .result-meta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; color: #c6d4f1; }
+    .result-meta a { color: #b6ccff; }
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 28px; }
+    .step { padding: 15px; border: 1px solid #202e47; border-radius: 14px; background: #0d1627a8; }
+    .step b { display: block; margin-bottom: 5px; color: #dce6ff; font-size: .88rem; }
+    .step span { color: #8292ae; font-size: .8rem; line-height: 1.45; }
+    @media (max-width: 600px) { main { padding-top: 32px; } .card { padding: 15px; } .steps { grid-template-columns: 1fr; } .result-meta { align-items: flex-start; flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="brand"><span class="brand-mark">◉</span> Visitor Vision</div>
+    <h1>Turn video into<br>visitor insights.</h1>
+    <p class="intro">Upload a camera recording to detect faces, recognize returning visitors, and create entry/exit records. Your video is processed locally by this application.</p>
+
+    <section class="card" aria-label="Upload a video">
+      <form id="upload-form">
+        <div class="drop-zone" id="drop-zone">
+          <div>
+            <div class="upload-icon">↑</div>
+            <strong>Drop a video here</strong>
+            <p>or browse files on your device</p>
+            <button class="browse" type="button" id="browse">Choose video</button>
+            <input id="video" name="video" type="file" accept="video/mp4,video/x-msvideo,video/quicktime,video/x-matroska,video/webm,.mp4,.avi,.mov,.mkv,.m4v,.webm" required>
+            <span class="file-name" id="file-name">MP4, AVI, MOV, MKV, M4V or WebM · up to 2 GB</span>
+          </div>
+        </div>
+        <button class="submit" id="submit" type="submit">Upload and process video</button>
+        <p class="fine-print">The uploaded source file is removed after processing. Results remain in the project output folder.</p>
+      </form>
+      <div class="status" id="status" role="status" aria-live="polite">
+        <div class="status-line"><span class="spinner" id="spinner"></span><strong id="status-title">Preparing…</strong></div>
+        <p id="status-message"></p>
+        <div class="result" id="result" hidden></div>
+      </div>
+    </section>
+
+    <section class="steps" aria-label="Processing steps">
+      <div class="step"><b>01 · Detect</b><span>YOLO locates faces in the video frames.</span></div>
+      <div class="step"><b>02 · Recognize</b><span>Face embeddings match known visitors or register new ones.</span></div>
+      <div class="step"><b>03 · Review</b><span>Watch the annotated video and check the saved visitor count.</span></div>
+    </section>
+  </main>
+  <script>
+    const form = document.querySelector('#upload-form');
+    const input = document.querySelector('#video');
+    const dropZone = document.querySelector('#drop-zone');
+    const statusBox = document.querySelector('#status');
+    const statusTitle = document.querySelector('#status-title');
+    const statusMessage = document.querySelector('#status-message');
+    const spinner = document.querySelector('#spinner');
+    const submit = document.querySelector('#submit');
+    const result = document.querySelector('#result');
+    let pollingTimer;
+
+    document.querySelector('#browse').addEventListener('click', () => input.click());
+    input.addEventListener('change', () => {
+      document.querySelector('#file-name').textContent = input.files[0]?.name || 'MP4, AVI, MOV, MKV, M4V or WebM · up to 2 GB';
+    });
+    for (const eventName of ['dragenter', 'dragover']) dropZone.addEventListener(eventName, event => { event.preventDefault(); dropZone.classList.add('dragover'); });
+    for (const eventName of ['dragleave', 'drop']) dropZone.addEventListener(eventName, event => { event.preventDefault(); dropZone.classList.remove('dragover'); });
+    dropZone.addEventListener('drop', event => {
+      if (event.dataTransfer.files.length) {
+        input.files = event.dataTransfer.files;
+        input.dispatchEvent(new Event('change'));
+      }
+    });
+
+    async function poll(jobId) {
+      try {
+        const response = await fetch(`/api/status/${jobId}`);
+        const job = await response.json();
+        statusTitle.textContent = job.status === 'processing' ? 'Processing video…' : job.status === 'queued' ? 'Upload received' : job.status === 'completed' ? 'Video ready' : 'Processing failed';
+        statusMessage.textContent = job.message;
+        if (job.status === 'failed') {
+          spinner.classList.add('hidden');
+          statusMessage.classList.add('error');
+          submit.disabled = false;
+          return;
+        }
+        if (job.status === 'completed') {
+          spinner.classList.add('hidden');
+          result.hidden = false;
+          result.innerHTML = `<video controls playsinline src="/outputs/${encodeURIComponent(job.output_filename)}"></video><div class="result-meta"><strong>Unique visitors recorded: ${job.visitor_count}</strong><a href="/outputs/${encodeURIComponent(job.report_filename)}" target="_blank" rel="noopener">Open event report</a></div>`;
+          submit.disabled = false;
+          return;
+        }
+        pollingTimer = setTimeout(() => poll(jobId), 1500);
+      } catch (_error) {
+        statusTitle.textContent = 'Connection interrupted';
+        statusMessage.textContent = 'The server stopped responding. Check the terminal running the web app.';
+        spinner.classList.add('hidden');
+        submit.disabled = false;
+      }
+    }
+
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      if (!input.files.length) return;
+      clearTimeout(pollingTimer);
+      submit.disabled = true;
+      statusBox.classList.add('visible');
+      statusTitle.textContent = 'Uploading video…';
+      statusMessage.textContent = 'Keep this page open while the file uploads.';
+      statusMessage.classList.remove('error');
+      spinner.classList.remove('hidden');
+      result.hidden = true;
+      result.replaceChildren();
+      try {
+        const response = await fetch('/upload', { method: 'POST', body: new FormData(form) });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || 'Upload failed.');
+        poll(data.job_id);
+      } catch (error) {
+        statusTitle.textContent = 'Upload could not start';
+        statusMessage.textContent = error.message;
+        statusMessage.classList.add('error');
+        spinner.classList.add('hidden');
+        submit.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
