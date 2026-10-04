@@ -3,7 +3,7 @@ title: Intelligent Face Tracker
 sdk: docker
 app_port: 7860
 ---
-
+http://127.0.0.1:5055/outputs/visitor_report.html
 # Intelligent Face Tracker with Auto-Registration
 
 A Python application for detecting faces in a video file, webcam, or RTSP stream; assigning persistent visitor IDs using InsightFace embeddings; tracking appearances; and recording timestamped entry/exit snapshots in SQLite and a rotating log file.
