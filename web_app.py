@@ -1,11 +1,13 @@
 """Local browser interface for uploading and processing visitor videos."""
 
 import argparse
+import hmac
+import os
 from pathlib import Path
 import threading
 import uuid
 
-from flask import Flask, jsonify, render_template, request, send_from_directory
+from flask import Flask, Response, jsonify, render_template, request, send_from_directory
 from werkzeug.utils import secure_filename
 
 from report import generate_report
@@ -15,7 +17,13 @@ from utils.config import load_settings
 ALLOWED_VIDEO_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv", ".m4v", ".webm"}
 
 
-def create_app(config_path: str | Path = "config.json", use_gpu: bool = False, pipeline_factory=None) -> Flask:
+def create_app(
+    config_path: str | Path = "config.json",
+    use_gpu: bool = False,
+    pipeline_factory=None,
+    username: str | None = None,
+    password: str | None = None,
+) -> Flask:
     settings = load_settings(config_path)
     root_dir = settings.logs_dir.parent
     upload_dir = root_dir / "uploads"
@@ -25,8 +33,28 @@ def create_app(config_path: str | Path = "config.json", use_gpu: bool = False, p
 
     app = Flask(__name__)
     app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024 * 1024
+    auth_username = username if username is not None else os.environ.get("WEB_USERNAME")
+    auth_password = password if password is not None else os.environ.get("WEB_PASSWORD")
+    auth_enabled = bool(auth_username and auth_password)
     state_lock = threading.Lock()
     current_job: dict | None = None
+
+    @app.before_request
+    def require_authentication():
+        if not auth_enabled or request.endpoint == "health_check":
+            return None
+        credentials = request.authorization
+        if (
+            credentials is not None
+            and hmac.compare_digest(credentials.username or "", auth_username)
+            and hmac.compare_digest(credentials.password or "", auth_password)
+        ):
+            return None
+        return Response(
+            "Authentication required",
+            401,
+            {"WWW-Authenticate": 'Basic realm="Intelligent Face Tracker"'},
+        )
 
     def process_video(job_id: str, source_path: Path, output_path: Path) -> None:
         nonlocal current_job
@@ -69,6 +97,10 @@ def create_app(config_path: str | Path = "config.json", use_gpu: bool = False, p
     @app.get("/")
     def index():
         return render_template("upload.html")
+
+    @app.get("/healthz")
+    def health_check():
+        return jsonify(status="ok")
 
     @app.post("/upload")
     def upload_video():

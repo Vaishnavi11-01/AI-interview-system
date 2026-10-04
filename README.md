@@ -90,6 +90,18 @@ The tracking component advances its missed-detection age only on detection cycle
 
 Run `python web_app.py` from the project folder, then visit `http://127.0.0.1:5000` and choose or drag a video into the upload area. Processing runs locally using the configured models and database; the uploaded source is removed when processing ends, while the annotated MP4 and refreshed event report are saved under `output/`. The local upload server accepts video files up to 2 GB. Keep the default host `127.0.0.1` for local-only use; do not expose this development server to an untrusted network.
 
+### Host on Render
+
+The repository includes a Docker deployment (`Dockerfile`, `render.yaml`, and `render_config.json`) for a **CPU-based demo**. To deploy:
+
+1. Push these files to the GitHub repository and sign in to [Render](https://render.com/).
+2. Choose **New → Blueprint**, connect the repository, and deploy the `render.yaml` blueprint. It provisions a web service and a persistent disk mounted at `/var/data` for the SQLite database, event images, logs, and generated video/report files.
+3. In the service's environment settings, set `WEB_USERNAME` and `WEB_PASSWORD` to strong, unique values. The WSGI entry point refuses to start without both. Use the Render-provided HTTPS URL and sign in when prompted.
+4. Check the build and service logs. The Docker build downloads the configured YOLO face weights; the first InsightFace initialization downloads its model pack. Both require network access. Review the referenced model weights' licensing before deployment.
+5. Test with a short, non-sensitive video first. Confirm the upload finishes, then verify the annotated video, report, snapshots, and database survive a service restart using the persistent disk.
+
+**Hosting caveats:** This workload downloads large machine-learning dependencies and runs face inference on CPU; select a plan with enough memory, CPU, disk space, and upload-size allowance for your videos. The blueprint uses one Gunicorn worker because current job status is held in memory and SQLite is local to one service. The job status is lost on restart, and multiple simultaneous workers/services are not supported. Check the host's request-size and request-time limits for uploads. This demonstration app does not include an account system, CSRF protection, rate limiting, or production job queue; Basic Auth is only a minimal access barrier, not a complete production security design. Face images and embeddings are sensitive biometric data: only host footage you have authorization to process, limit access and retention, and do not use this demo for consequential decisions.
+
 ### Configuration
 
 `detection_skip_frames` controls detection cadence. Relative model/database/log paths resolve from the directory containing `config.json`. The shipped 416px detector size is a CPU-oriented starting point; set it to 640 (or higher if supported by the weights) for more detail on a sufficiently fast GPU.

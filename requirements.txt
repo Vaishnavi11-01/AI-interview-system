@@ -4,3 +4,4 @@ ultralytics>=8.2,<9
 insightface>=2.0,<3
 onnxruntime>=1.17,<2
 Flask>=3.0,<4
+gunicorn>=22,<24

@@ -27,6 +27,23 @@ def test_upload_rejects_unsupported_file_type(tmp_path):
     assert "Unsupported file type" in response.get_json()["error"]
 
 
+def test_hosted_app_requires_basic_auth_except_health_check(tmp_path):
+    config_path = tmp_path / "config.json"
+    config_path.write_text(json.dumps({
+        "source": "",
+        "detector_model": "models/missing.pt",
+        "database_path": "data/visitors.sqlite3",
+        "logs_dir": "logs",
+    }), encoding="utf-8")
+    app = create_app(config_path, username="reviewer", password="strong-test-password")
+    client = app.test_client()
+
+    assert client.get("/").status_code == 401
+    assert client.get("/healthz").status_code == 200
+    response = client.get("/", headers={"Authorization": "Basic cmV2aWV3ZXI6c3Ryb25nLXRlc3QtcGFzc3dvcmQ="})
+    assert response.status_code == 200
+
+
 def test_uploaded_video_runs_pipeline_and_serves_result(tmp_path):
     config_path = tmp_path / "config.json"
     config_path.write_text(json.dumps({

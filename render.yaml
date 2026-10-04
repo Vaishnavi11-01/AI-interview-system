@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: intelligent-face-tracker
+    runtime: docker
+    plan: standard
+    healthCheckPath: /healthz
+    envVars:
+      - key: APP_CONFIG
+        value: render_config.json
+      - key: WEB_USERNAME
+        sync: false
+      - key: WEB_PASSWORD
+        sync: false
+    disk:
+      name: visitor-data
+      mountPath: /var/data
+      sizeGB: 10
